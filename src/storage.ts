@@ -4,7 +4,6 @@ const PURCHASES_KEY = 'truecost-bnpl-purchases'
 const SETTINGS_KEY = 'truecost-bnpl-settings'
 
 const defaultSettings: Settings = {
-  defaultAnnualReturnRate: 8,
   currency: 'USD',
 }
 

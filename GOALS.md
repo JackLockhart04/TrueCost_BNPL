@@ -18,6 +18,9 @@ Create a simple proof-of-concept that helps one user understand the opportunity 
 - New purchases open to a separate purchase-details page after creation.
 - Each payment can be managed separately with an editable due date, amount, and paid, scheduled, or missed status.
 - The app asks whether to clear its local data each time it loads.
+- UI rendering is separated from application state and browser event handling.
+- Dashboard includes an educational 10-year investment-value chart with 4% and 8% assumptions.
+- Purchase details show fixed 8% opportunity-value summaries for 1, 5, and 10 years.
 
 ## Intentionally out of scope
 

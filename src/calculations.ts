@@ -82,17 +82,12 @@ export function getRemainingBalance(purchase: Purchase): number {
     .reduce((total, payment) => total + payment.amount, 0)
 }
 
-export function getAveragePaymentAmount(purchase: Purchase): number {
-  if (purchase.payments.length === 0) return 0
-  return purchase.payments.reduce((total, payment) => total + payment.amount, 0) / purchase.payments.length
-}
-
 // Treat each unpaid payment as an investment made on its scheduled payment date.
-export function getOpportunityValue(purchase: Purchase, years: number): number {
+export function getOpportunityValue(purchase: Purchase, years: number, annualReturnRate = 8): number {
   const today = parseDate(getToday())
   const endDate = new Date(today)
   endDate.setFullYear(endDate.getFullYear() + years)
-  const annualRate = purchase.annualReturnRate / 100
+  const annualRate = annualReturnRate / 100
 
   return purchase.payments
     .filter((payment) => payment.status !== 'paid')
@@ -102,6 +97,13 @@ export function getOpportunityValue(purchase: Purchase, years: number): number {
         ? futureValue + payment.amount * (1 + annualRate) ** yearsToGrow
         : futureValue
     }, 0)
+}
+
+export function getPortfolioOpportunityValue(purchases: Purchase[], years: number, annualReturnRate: number): number {
+  return purchases.reduce(
+    (total, purchase) => total + getOpportunityValue(purchase, years, annualReturnRate),
+    0,
+  )
 }
 
 export function formatDate(date: Date): string {

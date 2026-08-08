@@ -44,4 +44,5 @@ Open the local address shown in the terminal (normally http://localhost:5173).
 - Dashboard timeline for the next five unpaid payments and a current-month payment calendar.
 - Separate purchase-detail and payment-management pages, including editable payment dates, amounts, and statuses.
 - On each page load, the app asks whether to clear saved local data for development.
+- Dashboard investment chart with 4% (high-yield savings) and 8% (S&P 500) assumptions.
 - Estimated opportunity cost over 1, 5, and 10 years.

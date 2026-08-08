@@ -17,12 +17,10 @@ export type Purchase = {
   firstPaymentDate?: string
   paymentIntervalValue: number
   paymentIntervalUnit: PaymentIntervalUnit
-  annualReturnRate: number
   createdAt: string
   payments: Payment[]
 }
 
 export type Settings = {
-  defaultAnnualReturnRate: number
   currency: string
 }
