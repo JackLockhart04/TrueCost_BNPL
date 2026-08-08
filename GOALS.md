@@ -21,6 +21,9 @@ Create a simple proof-of-concept that helps one user understand the opportunity 
 - UI rendering is separated from application state and browser event handling.
 - Dashboard includes an educational 10-year investment-value chart with 4% and 8% assumptions.
 - Purchase details show fixed 8% opportunity-value summaries for 1, 5, and 10 years.
+- Payment management has status totals, a quick Mark paid action, and a remaining-balance preview.
+- Dashboard chart can focus on selected purchases, and development reloads can use temporary sample data.
+- Purchase details include a full chronological payment timeline.
 
 ## Intentionally out of scope
 

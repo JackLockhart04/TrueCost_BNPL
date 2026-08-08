@@ -2,14 +2,16 @@ import {
   formatDate,
   formatMoney,
   formatMonth,
+  getBalanceAfterPayment,
   getOpportunityValue,
-  getPortfolioOpportunityValue,
+  getPaymentStatusCounts,
   getPaymentsForMonth,
   getRemainingBalance,
   getRemainingInstallments,
   getToday,
   getUpcomingPayments,
 } from './calculations'
+import { renderInvestmentChart } from './chart'
 import type { PaymentStatus, Purchase, Settings } from './types'
 
 export type Page = 'dashboard' | 'purchases' | 'form' | 'detail' | 'managePayments' | 'settings'
@@ -21,6 +23,7 @@ type AppView = {
   editingPurchaseId: string | null
   viewingPurchaseId: string | null
   chartReturnRate: number
+  selectedChartPurchaseIds: string[]
 }
 
 function escapeHtml(value: string): string {
@@ -57,10 +60,10 @@ function summaryCard(label: string, value: string): string {
   return `<article class="summary-card"><p>${label}</p><strong>${value}</strong></article>`
 }
 
-function renderDashboard({ purchases, settings, chartReturnRate }: AppView): string {
+function renderDashboard({ purchases, settings, chartReturnRate, selectedChartPurchaseIds }: AppView): string {
   const activePurchases = purchases.filter((purchase) => getRemainingInstallments(purchase) > 0)
   const remainingBalance = activePurchases.reduce((total, purchase) => total + getRemainingBalance(purchase), 0)
-  const tenYearValue = getPortfolioOpportunityValue(activePurchases, 10, 8)
+  const tenYearValue = activePurchases.reduce((total, purchase) => total + getOpportunityValue(purchase, 10), 0)
   const thisMonthsPayments = getPaymentsForMonth(purchases)
   const dueThisMonth = thisMonthsPayments.filter((payment) => payment.status === 'scheduled').reduce((total, payment) => total + payment.amount, 0)
 
@@ -74,44 +77,8 @@ function renderDashboard({ purchases, settings, chartReturnRate }: AppView): str
     </section>
     ${renderUpcomingTimeline(purchases, settings)}
     ${renderPaymentCalendar(thisMonthsPayments, settings)}
-    ${renderInvestmentChart(activePurchases, settings, chartReturnRate)}
+    ${renderInvestmentChart({ purchases: activePurchases, settings, returnRate: chartReturnRate, selectedPurchaseIds: selectedChartPurchaseIds })}
     <section class="panel explanation"><h2>How the estimate works</h2><p>For each unpaid payment, TrueCost estimates its future value using that purchase's annual return rate. This is an educational estimate, not investment advice.</p></section>
-  `
-}
-
-function renderInvestmentChart(purchases: Purchase[], settings: Settings, returnRate: number): string {
-  const chartWidth = 720
-  const chartHeight = 300
-  const padding = { top: 28, right: 24, bottom: 45, left: 74 }
-  const values = Array.from({ length: 11 }, (_, year) => getPortfolioOpportunityValue(purchases, year, returnRate))
-  const maxValue = Math.max(...values, 1)
-  const x = (year: number) => padding.left + (year / 10) * (chartWidth - padding.left - padding.right)
-  const y = (value: number) => chartHeight - padding.bottom - (value / maxValue) * (chartHeight - padding.top - padding.bottom)
-  const linePoints = values.map((value, year) => `${x(year)},${y(value)}`).join(' ')
-  const yTicks = [0, maxValue / 2, maxValue]
-  const yLabels = yTicks.map((value) => `<text x="${padding.left - 10}" y="${y(value) + 4}" text-anchor="end">${formatMoney(value, settings.currency)}</text>`).join('')
-  const xLabels = [0, 5, 10].map((year) => `<text x="${x(year)}" y="${chartHeight - 16}" text-anchor="middle">${year} years</text>`).join('')
-  const markerYears = [1, 5, 10]
-  const markers = markerYears.map((year) => `<circle cx="${x(year)}" cy="${y(values[year])}" r="4" /><text x="${x(year)}" y="${y(values[year]) - 10}" text-anchor="middle">${formatMoney(values[year], settings.currency)}</text>`).join('')
-
-  return `
-    <section class="panel investment-chart">
-      <div class="section-heading"><div><h2>What your BNPL payments could become</h2><p>Estimated value of investing every unpaid payment instead of spending it.</p></div></div>
-      <div class="chart-controls" aria-label="Investment comparison rate">
-        <button data-action="chart-rate" data-rate="4" class="${returnRate === 4 ? 'selected' : ''}">4% - High-yield savings</button>
-        <button data-action="chart-rate" data-rate="8" class="${returnRate === 8 ? 'selected' : ''}">8% - S&P 500</button>
-      </div>
-      <svg viewBox="0 0 ${chartWidth} ${chartHeight}" role="img" aria-label="Estimated investment value over ten years at ${returnRate} percent">
-        <line x1="${padding.left}" y1="${y(0)}" x2="${chartWidth - padding.right}" y2="${y(0)}" class="chart-axis" />
-        ${yTicks.slice(1).map((value) => `<line x1="${padding.left}" y1="${y(value)}" x2="${chartWidth - padding.right}" y2="${y(value)}" class="chart-grid" />`).join('')}
-        ${yLabels}${xLabels}
-        <polyline points="${linePoints}" class="chart-line" />
-        ${markers}
-        <text x="${padding.left}" y="16" class="chart-label">Estimated invested value</text>
-        <text x="${chartWidth - padding.right}" y="${y(0) - 8}" text-anchor="end" class="chart-baseline">BNPL purchase: $0 invested</text>
-      </svg>
-      <p class="chart-note">This illustration uses a ${returnRate}% annual return assumption. Actual investment returns can vary.</p>
-    </section>
   `
 }
 
@@ -152,14 +119,31 @@ function renderPurchaseDetail(view: AppView): string {
   const nextPayments = getUpcomingPayments([purchase], 3)
   const paymentRows = nextPayments.length === 0 ? '<li>No scheduled payments remain.</li>' : nextPayments.map((payment) => `<li><span>${formatDate(payment.date)}</span><strong>${formatMoney(payment.amount, view.settings.currency)}</strong></li>`).join('')
   const opportunityValues = [1, 5, 10].map((years) => summaryCard(`${years}-year value at 8%`, formatMoney(getOpportunityValue(purchase, years), view.settings.currency))).join('')
-  return `<section class="detail-page"><button class="back-button" data-page="purchases">Back to purchases</button><div class="page-heading"><div><p class="eyebrow">Purchase details</p><h1>${escapeHtml(purchase.name)}</h1></div><div class="card-actions"><button data-action="edit" data-id="${purchase.id}">Edit purchase</button><button class="primary-button" data-action="manage-payments" data-id="${purchase.id}">Manage payments</button></div></div><section class="summary-grid detail-summary">${summaryCard('Original price', formatMoney(purchase.totalPrice, view.settings.currency))}${summaryCard('Remaining balance', formatMoney(getRemainingBalance(purchase), view.settings.currency))}${summaryCard('Payment interval', `${purchase.paymentIntervalValue} ${purchase.paymentIntervalUnit}`)}</section><section class="panel"><h2>Potential value of these payments</h2><p>Assumes an 8% annual return, using the S&P 500 as an educational benchmark.</p><div class="summary-grid detail-summary">${opportunityValues}</div></section><section class="panel"><h2>Next 3 payment dates</h2><ol class="payment-list">${paymentRows}</ol></section></section>`
+  return `<section class="detail-page"><button class="back-button" data-page="purchases">Back to purchases</button><div class="page-heading"><div><p class="eyebrow">Purchase details</p><h1>${escapeHtml(purchase.name)}</h1></div><div class="card-actions"><button data-action="edit" data-id="${purchase.id}">Edit purchase</button><button class="primary-button" data-action="manage-payments" data-id="${purchase.id}">Manage payments</button></div></div><section class="summary-grid detail-summary">${summaryCard('Original price', formatMoney(purchase.totalPrice, view.settings.currency))}${summaryCard('Remaining balance', formatMoney(getRemainingBalance(purchase), view.settings.currency))}${summaryCard('Payment interval', `${purchase.paymentIntervalValue} ${purchase.paymentIntervalUnit}`)}</section><section class="panel"><h2>Potential value of these payments</h2><p>Assumes an 8% annual return, using the S&P 500 as an educational benchmark.</p><div class="summary-grid detail-summary">${opportunityValues}</div></section><section class="panel"><h2>Next 3 payment dates</h2><ol class="payment-list">${paymentRows}</ol></section>${renderPaymentTimeline(purchase, view.settings)}</section>`
+}
+
+function renderPaymentTimeline(purchase: Purchase, settings: Settings): string {
+  const rows = [...purchase.payments]
+    .sort((first, second) => first.dueDate.localeCompare(second.dueDate))
+    .map((payment) => `
+      <tr>
+        <td>${payment.installmentNumber}</td>
+        <td>${formatDate(new Date(`${payment.dueDate}T12:00:00`))}</td>
+        <td>${formatMoney(payment.amount, settings.currency)}</td>
+        <td><span class="payment-status ${payment.status}">${payment.status}</span></td>
+        <td>${formatMoney(getBalanceAfterPayment(purchase, payment.installmentNumber), settings.currency)}</td>
+      </tr>
+    `).join('')
+
+  return `<section class="panel"><h2>Full payment timeline</h2><p>Every scheduled installment and its current status.</p><div class="payment-table-wrap"><table><thead><tr><th>Payment</th><th>Due date</th><th>Amount</th><th>Status</th><th>Balance if paid</th></tr></thead><tbody>${rows}</tbody></table></div></section>`
 }
 
 function renderPaymentManagement(view: AppView): string {
   const purchase = view.purchases.find((item) => item.id === view.viewingPurchaseId)
   if (!purchase) return missingPurchase()
-  const rows = purchase.payments.map((payment) => `<tr><td>${payment.installmentNumber}</td><td><input name="dueDate-${payment.installmentNumber}" type="date" required value="${payment.dueDate}" /></td><td><input name="amount-${payment.installmentNumber}" type="number" min="0" step="0.01" required value="${payment.amount}" /></td><td><select name="status-${payment.installmentNumber}">${statusOptions(payment.status)}</select></td></tr>`).join('')
-  return `<section class="form-section wide-form"><button class="back-button" data-action="view" data-id="${purchase.id}">Back to purchase</button><h1>Manage payments</h1><p>Update a payment's due date, amount, or status. These changes do not edit the original purchase details.</p><form id="payment-management-form" class="panel"><div class="payment-table-wrap"><table><thead><tr><th>Payment</th><th>Due date</th><th>Amount</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div><div class="form-actions"><button class="primary-button" type="submit">Save payment changes</button></div></form></section>`
+  const statusCounts = getPaymentStatusCounts(purchase)
+  const rows = purchase.payments.map((payment) => `<tr><td>${payment.installmentNumber}</td><td><input name="dueDate-${payment.installmentNumber}" type="date" required value="${payment.dueDate}" /></td><td><input name="amount-${payment.installmentNumber}" type="number" min="0" step="0.01" required value="${payment.amount}" /></td><td><select name="status-${payment.installmentNumber}">${statusOptions(payment.status)}</select></td><td>${payment.status === 'paid' ? 'Paid' : `<button type="button" data-action="mark-paid" data-id="${purchase.id}" data-installment="${payment.installmentNumber}">Mark paid</button>`}</td><td>${formatMoney(getBalanceAfterPayment(purchase, payment.installmentNumber), view.settings.currency)}</td></tr>`).join('')
+  return `<section class="form-section wide-form"><button class="back-button" data-action="view" data-id="${purchase.id}">Back to purchase</button><h1>Manage payments</h1><p>Update a payment's due date, amount, or status. These changes do not edit the original purchase details.</p><section class="summary-grid payment-status-summary">${summaryCard('Paid', String(statusCounts.paid))}${summaryCard('Scheduled', String(statusCounts.scheduled))}${summaryCard('Missed', String(statusCounts.missed))}</section><form id="payment-management-form" class="panel"><div class="payment-table-wrap"><table><thead><tr><th>Payment</th><th>Due date</th><th>Amount</th><th>Status</th><th>Quick action</th><th>Balance if paid</th></tr></thead><tbody>${rows}</tbody></table></div><div class="form-actions"><button class="primary-button" type="submit">Save payment changes</button></div></form></section>`
 }
 
 function renderPurchaseForm(view: AppView): string {

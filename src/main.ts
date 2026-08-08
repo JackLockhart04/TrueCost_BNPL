@@ -1,20 +1,25 @@
 import './style.css'
-import { createPaymentSchedule } from './calculations'
+import { createPaymentSchedule, getRemainingInstallments } from './calculations'
+import { createSamplePurchases } from './sample-data'
 import { clearSavedData, loadPurchases, loadSettings, savePurchases, saveSettings } from './storage'
 import type { PaymentStatus, Purchase } from './types'
 import { renderApp, type Page } from './ui'
 
-if (window.confirm('Clear all saved TrueCost BNPL data for this refresh?')) {
+const useSampleData = window.confirm('Load temporary sample data? Select Cancel to clear saved data and start fresh.')
+if (!useSampleData) {
   clearSavedData()
 }
 
 const app = document.querySelector<HTMLDivElement>('#app')!
-let purchases = loadPurchases()
+let purchases = useSampleData ? createSamplePurchases() : loadPurchases()
 let settings = loadSettings()
 let currentPage: Page = 'dashboard'
 let editingPurchaseId: string | null = null
 let viewingPurchaseId: string | null = null
 let chartReturnRate = 8
+let selectedChartPurchaseIds = purchases
+  .filter((purchase) => getRemainingInstallments(purchase) > 0)
+  .map((purchase) => purchase.id)
 
 function render(): void {
   app.innerHTML = renderApp({
@@ -24,6 +29,7 @@ function render(): void {
     editingPurchaseId,
     viewingPurchaseId,
     chartReturnRate,
+    selectedChartPurchaseIds,
   })
 }
 
@@ -97,6 +103,21 @@ app.addEventListener('click', (event) => {
   if (page) showPage(page)
   if (action === 'new-purchase') startNewPurchase()
   if (action === 'chart-rate' && target.dataset.rate) { chartReturnRate = Number(target.dataset.rate); render() }
+  if (action === 'toggle-chart-purchase' && id) {
+    selectedChartPurchaseIds = selectedChartPurchaseIds.includes(id)
+      ? selectedChartPurchaseIds.filter((purchaseId) => purchaseId !== id)
+      : [...selectedChartPurchaseIds, id]
+    render()
+  }
+  if (action === 'mark-paid' && id && target.dataset.installment) {
+    const installmentNumber = Number(target.dataset.installment)
+    purchases = purchases.map((purchase) => purchase.id === id ? {
+      ...purchase,
+      payments: purchase.payments.map((payment) => payment.installmentNumber === installmentNumber ? { ...payment, status: 'paid' } : payment),
+    } : purchase)
+    savePurchases(purchases)
+    render()
+  }
   if (action === 'view' && id) { viewingPurchaseId = id; currentPage = 'detail'; render() }
   if (action === 'edit' && id) { editingPurchaseId = id; currentPage = 'form'; render() }
   if (action === 'manage-payments' && id) { viewingPurchaseId = id; currentPage = 'managePayments'; render() }

@@ -82,6 +82,19 @@ export function getRemainingBalance(purchase: Purchase): number {
     .reduce((total, payment) => total + payment.amount, 0)
 }
 
+export function getBalanceAfterPayment(purchase: Purchase, installmentNumber: number): number {
+  return purchase.payments
+    .filter((payment) => payment.status !== 'paid' && payment.installmentNumber !== installmentNumber)
+    .reduce((total, payment) => total + payment.amount, 0)
+}
+
+export function getPaymentStatusCounts(purchase: Purchase): Record<Payment['status'], number> {
+  return purchase.payments.reduce<Record<Payment['status'], number>>(
+    (counts, payment) => ({ ...counts, [payment.status]: counts[payment.status] + 1 }),
+    { scheduled: 0, paid: 0, missed: 0 },
+  )
+}
+
 // Treat each unpaid payment as an investment made on its scheduled payment date.
 export function getOpportunityValue(purchase: Purchase, years: number, annualReturnRate = 8): number {
   const today = parseDate(getToday())
