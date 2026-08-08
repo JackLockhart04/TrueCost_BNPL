@@ -12,6 +12,12 @@ Create a simple proof-of-concept that helps one user understand the opportunity 
 - Purchase and settings data is saved in browser `localStorage`.
 - Each purchase shows estimated investment values for 1, 5, and 10 years.
 - Settings allow a default annual return rate and display currency.
+- Purchases support a custom payment interval, purchase date, and first payment date.
+- Payment dates are used for the opportunity-cost estimate and next-payment display.
+- Dashboard shows the next five unpaid payments, payments due this month, and a current-month payment calendar.
+- New purchases open to a separate purchase-details page after creation.
+- Each payment can be managed separately with an editable due date, amount, and paid, scheduled, or missed status.
+- The app asks whether to clear its local data each time it loads.
 
 ## Intentionally out of scope
 
@@ -22,6 +28,5 @@ Create a simple proof-of-concept that helps one user understand the opportunity 
 
 ## Possible next steps
 
-- Add purchase dates and a monthly payment timeline.
 - Add charts to compare remaining payments with potential investment growth.
 - Add import/export of local data.

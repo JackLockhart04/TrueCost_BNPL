@@ -35,3 +35,13 @@ npm run dev
 ```
 
 Open the local address shown in the terminal (normally http://localhost:5173).
+
+## Current proof-of-concept features
+
+- Manual purchase entry stored in this browser only.
+- Configurable payment intervals in days, weeks, or months.
+- Purchase and optional first-payment dates. If left blank, the first payment is calculated from the purchase date and interval.
+- Dashboard timeline for the next five unpaid payments and a current-month payment calendar.
+- Separate purchase-detail and payment-management pages, including editable payment dates, amounts, and statuses.
+- On each page load, the app asks whether to clear saved local data for development.
+- Estimated opportunity cost over 1, 5, and 10 years.
