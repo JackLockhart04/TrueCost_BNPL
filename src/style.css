@@ -44,15 +44,23 @@ p { color: #59677f; line-height: 1.55; }
 .investment-chart text { fill: #59677f; font-size: 11px; }
 .investment-chart .chart-axis, .investment-chart .chart-grid { stroke: #cbd3e1; stroke-width: 1; }
 .investment-chart .chart-grid { stroke-dasharray: 3 3; }
-.investment-chart .chart-line { fill: none; stroke: #4254c5; stroke-width: 3; }
-.investment-chart circle { fill: #4254c5; }
+.investment-chart .chart-area { fill-opacity: .8; }
+.investment-chart .chart-total-line { fill: none; stroke: #172033; stroke-width: 2; }
+.investment-chart .chart-comparison-line { fill: none; stroke: #7a8499; stroke-dasharray: 6 4; stroke-width: 2; }
+.investment-chart circle { fill: #172033; }
 .investment-chart .chart-label, .investment-chart .chart-baseline { fill: #26344f; font-weight: 700; }
 .chart-note { font-size: .9rem; }
 .chart-lesson { background: #eef1ff; border-left: 4px solid #4254c5; color: #26344f; padding: .8rem; }
 .chart-purchase-controls { align-items: center; display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
 .chart-purchase-controls span { color: #59677f; font-size: .9rem; font-weight: 700; }
 .chart-purchase-controls button { background: transparent; border: 1px solid #cbd3e1; border-radius: .45rem; color: #26344f; padding: .45rem .65rem; }
-.chart-purchase-controls button.selected { background: #eef1ff; border-color: #4254c5; color: #283c9e; }
+.chart-purchase-controls button.selected { background: #eef1ff; border-color: var(--purchase-color); color: #26344f; }
+.purchase-color-dot { background: var(--purchase-color); border-radius: 50%; display: inline-block; height: .65rem; margin-right: .35rem; vertical-align: -0.05rem; width: .65rem; }
+.chart-legend { display: flex; flex-wrap: wrap; gap: 1rem; margin: .5rem 0; }
+.chart-legend span { align-items: center; color: #59677f; display: inline-flex; font-size: .8rem; gap: .35rem; }
+.legend-line { display: inline-block; width: 1.1rem; }
+.legend-line { border-top: 2px solid #172033; }
+.legend-line.comparison-rate { border-color: #7a8499; border-style: dashed; }
 .empty-chart-message { padding: 2rem 0; text-align: center; }
 .payment-status-summary { grid-template-columns: repeat(3, 1fr); margin-top: 1rem; }
 .back-button { background: transparent; border: 0; color: #4254c5; font-weight: 700; margin-bottom: 1rem; padding: 0; }
@@ -69,6 +77,8 @@ td input, td select { min-width: 120px; width: 100%; }
 .payment-status.paid { background: #dff4e7; color: #17663a; }
 .payment-status.scheduled { background: #e4e9ff; color: #283c9e; }
 .payment-status.missed { background: #fde2e5; color: #a32638; }
+.truecost-summary { background: #eef1ff; border-left: 4px solid #4254c5; margin-top: 2rem; padding: 1.4rem; }
+.truecost-summary h2 { font-size: 1.3rem; line-height: 1.35; }
 .explanation { max-width: 720px; }
 .page-heading { align-items: start; display: flex; gap: 1rem; justify-content: space-between; margin-bottom: 1.5rem; }
 .page-heading h1, .form-section h1 { font-size: 2rem; }

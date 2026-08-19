@@ -22,19 +22,29 @@ function createSamplePurchase(details: Omit<Purchase, 'payments' | 'createdAt'>,
 export function createSamplePurchases(): Purchase[] {
   return [
     createSamplePurchase({
-      id: 'sample-laptop', name: 'Laptop', totalPrice: 1200, installmentCount: 12,
-      purchaseDate: dateOffset(-45), firstPaymentDate: dateOffset(-15),
-      paymentIntervalValue: 1, paymentIntervalUnit: 'months',
+      id: 'sample-headphones', name: 'Headphones', totalPrice: 90, installmentCount: 3,
+      purchaseDate: dateOffset(-14), firstPaymentDate: dateOffset(-7),
+      paymentIntervalValue: 1, paymentIntervalUnit: 'weeks',
     }, 1),
     createSamplePurchase({
-      id: 'sample-shoes', name: 'Running shoes', totalPrice: 180, installmentCount: 4,
-      purchaseDate: dateOffset(-14), firstPaymentDate: dateOffset(0),
-      paymentIntervalValue: 2, paymentIntervalUnit: 'weeks',
+      id: 'sample-shoes', name: 'Running shoes', totalPrice: 150, installmentCount: 3,
+      purchaseDate: dateOffset(-7), firstPaymentDate: dateOffset(0),
+      paymentIntervalValue: 1, paymentIntervalUnit: 'weeks',
     }, 0),
     createSamplePurchase({
-      id: 'sample-sofa', name: 'Sofa', totalPrice: 900, installmentCount: 6,
-      purchaseDate: dateOffset(-10), firstPaymentDate: dateOffset(10),
+      id: 'sample-fitness', name: 'Fitness equipment', totalPrice: 480, installmentCount: 8,
+      purchaseDate: dateOffset(-50), firstPaymentDate: dateOffset(-42),
+      paymentIntervalValue: 2, paymentIntervalUnit: 'weeks',
+    }, 3),
+    createSamplePurchase({
+      id: 'sample-sofa', name: 'Sofa', totalPrice: 900, installmentCount: 8,
+      purchaseDate: dateOffset(-65), firstPaymentDate: dateOffset(-60),
       paymentIntervalValue: 1, paymentIntervalUnit: 'months',
-    }, 0),
+    }, 2),
+    createSamplePurchase({
+      id: 'sample-laptop', name: 'Laptop', totalPrice: 1400, installmentCount: 14,
+      purchaseDate: dateOffset(-65), firstPaymentDate: dateOffset(-60),
+      paymentIntervalValue: 1, paymentIntervalUnit: 'months',
+    }, 2),
   ]
 }

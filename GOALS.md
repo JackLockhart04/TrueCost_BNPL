@@ -24,6 +24,10 @@ Create a simple proof-of-concept that helps one user understand the opportunity 
 - Payment management has status totals, a quick Mark paid action, and a remaining-balance preview.
 - Dashboard chart can focus on selected purchases, and development reloads can use temporary sample data.
 - Purchase details include a full chronological payment timeline.
+- Purchase details include a plain-English TrueCost summary at the fixed 8% educational assumption.
+- Investment chart shows stacked purchase contributions, payment timing, final-payment markers, and the alternate-rate comparison.
+- Investment chart calculates monthly values for smoother curves while labeling only 1, 5, and 10 years.
+- Monthly chart calculations use fractional time correctly, and final payment dates use compact x-axis markers.
 
 ## Intentionally out of scope
 

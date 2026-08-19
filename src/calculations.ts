@@ -98,8 +98,9 @@ export function getPaymentStatusCounts(purchase: Purchase): Record<Payment['stat
 // Treat each unpaid payment as an investment made on its scheduled payment date.
 export function getOpportunityValue(purchase: Purchase, years: number, annualReturnRate = 8): number {
   const today = parseDate(getToday())
-  const endDate = new Date(today)
-  endDate.setFullYear(endDate.getFullYear() + years)
+  // A chart can request a fraction of a year (for example, one month).
+  // Date#setFullYear discards that fraction, so use elapsed days instead.
+  const endDate = new Date(today.getTime() + years * 365.25 * 24 * 60 * 60 * 1000)
   const annualRate = annualReturnRate / 100
 
   return purchase.payments
